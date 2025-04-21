@@ -1,5 +1,4 @@
 #include <mpi.h>
-#include <cstdio>
 
 #define mcw MPI_COMM_WORLD
 #define SIZE 1000
