@@ -8,7 +8,7 @@ int driver()
 {
     int rank, proc_count, input_len, encode, file;
     char string[SIZE];
-    
+
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(mcw, &rank);
     MPI_Comm_size(mcw, &proc_count);
@@ -18,12 +18,7 @@ int driver()
         printf("Encode (1) - Decode(2): ");
         fflush(stdout); // ensure the prompt is displayed
         scanf("%d", &encode);
-
-        // Clear the input buffer
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF)
-        {
-        }
+        clear_input_buffer();
 
         if (encode != 1 && encode != 2)
         {
@@ -32,10 +27,46 @@ int driver()
             MPI_Abort(mcw, 400);
         }
 
-        printf("Enter String: ");
-        fflush(stdout); // ensure the prompt is displayed
-        fgets(string, SIZE, stdin);
-        string[strcspn(string, "\n")] = '\0'; // remove newline
+        int inputMethod;
+        printf("File (1) - Console (2): ");
+        fflush(stdout);
+        scanf("%d", &inputMethod);
+        clear_input_buffer();
+
+
+        if (inputMethod != 1 && inputMethod != 2)
+        {
+            printf("Invalid choice\n*\n*\n");
+            fflush(stdout); // ensure the prompt is displayed
+            MPI_Abort(mcw, 400);
+        }
+
+        if (inputMethod == 1)
+        { // file input
+            char fileName[SIZE];
+            printf("File name: ");
+            fflush(stdout);
+            fgets(fileName, SIZE, stdin);
+
+            FILE *file = fopen("input.txt", "r");
+            if (file == NULL)
+            {
+                perror("Error opening file");
+                return 1;
+            }
+
+            size_t len = fread(string, sizeof(char), SIZE - 1, file);
+            string[len] = '\0'; // Null-terminate the string
+            fclose(file);
+        }
+        else
+        { // console input
+            printf("Enter String: ");
+            fflush(stdout);
+            fgets(string, SIZE, stdin);
+            string[strcspn(string, "\n")] = '\0'; // remove newline
+        }
+
         input_len = strlen(string);
 
         int base_size = input_len / proc_count;
@@ -68,5 +99,4 @@ int driver()
     }
 
     MPI_Finalize();
-
 }

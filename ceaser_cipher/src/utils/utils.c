@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <cstdio>
 
 #define mcw MPI_COMM_WORLD
 #define SIZE 1000
@@ -45,4 +46,11 @@ void process_chunk(char *chunk, int length, int encode)
 {
     for (int i = 0; i < length; i++)
         chunk[i] = shift_char(chunk[i], encode);
+}
+
+void clear_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+    }
 }
