@@ -2,14 +2,15 @@
 
 #define mcw MPI_COMM_WORLD
 #define SIZE 1000
-#define SHIFT 3
+#define SHIFT 1
 
-void send_data_to_processes(char string[], int proc_count, int base_size, int remainder)
+void send_data_to_processes(char string[], int proc_count, int base_size, int remainder, int encode)
 {
-    int offset = base_size + (0 < remainder ? 1 : 0); // Master's chunk size
+    int offset = base_size + (0 < remainder ? 1 : 0);
     for (int i = 1; i < proc_count; i++)
     {
         int chunk_size = base_size + (i < remainder ? 1 : 0);
+        MPI_Send(&encode, 1, MPI_INT, i, 0, mcw);
         MPI_Send(&chunk_size, 1, MPI_INT, i, 0, mcw);
         MPI_Send(string + offset, chunk_size, MPI_CHAR, i, 0, mcw);
         offset += chunk_size;
@@ -30,12 +31,14 @@ void recv_data_from_processes(char string[], int proc_count, int base_size, int 
 
 char shift_char(char c, int encode)
 {
-    if (c < 'a' || c > 'z')
-        return c;
-    if (encode == 1)
-        return ((c - 'a' + SHIFT) % 26 + 'a');
-    else
-        return ((c - 'a' - SHIFT + 26) % 26 + 'a');
+    if (c >= 'a' && c <= 'z')
+    {
+        if (encode == 1)
+            return 'a' + (c - 'a' + SHIFT) % 26;
+        else
+            return 'a' + (c - 'a' - SHIFT + 26) % 26;
+    }
+    return c;
 }
 
 void process_chunk(char *chunk, int length, int encode)
